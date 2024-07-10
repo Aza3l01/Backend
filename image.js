@@ -1,4 +1,3 @@
-// Assuming this is your Mongoose model definition
 const mongoose = require('mongoose');
 
 const detailSchema = new mongoose.Schema({
