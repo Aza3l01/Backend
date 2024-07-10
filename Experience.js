@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 // Define the schema
 const departmentSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
+    username: String,
     designation: String,
     branch: String,
     college: String,

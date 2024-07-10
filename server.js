@@ -2,13 +2,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const jwt = require("jsonwebtoken");
 const app = express();
-const Detail = require('./detail');
+
+const Detail = require('./Patent');
+const image = require('./image');
 const Aresponsibilities = require('./Aresponsibilities');
 const Awards = require('./Awards');
 const Laboratory = require('./Laboratory');
 const Dresponsibilities = require('./Dresponsibilities');
-const Responsibilities = require('./Responsibilities');
 const Memberships = require('./Memberships');
 const Mou = require('./Mou');
 const Research = require('./Research');
@@ -17,6 +19,7 @@ const Talk = require('./Talk');
 const Training = require('./Training');
 const Educational = require('./Educational');
 const Experience = require('./Experience');
+const Responsibilities = require('./Responsibilities');
 const Links = require('./links');
 const National = require('./National');
 const Nationaluser = require('./Nationaluser');
@@ -31,6 +34,8 @@ const Bookchapteruser = require('./Bookchapteruser');
 const Academicug = require('./Academicug');
 const Academicpg = require('./Academicpg');
 const Details = require('./Details');
+const Login = require('./Login');
+
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -42,10 +47,83 @@ mongoose.connect('mongodb+srv://admin:nyAV66vyy26KT7Zu@cluster0.ppdntyu.mongodb.
     console.error('MongoDB connection error:', error);
   });
 
-  app.get('/Training', async (req, res) => {
+  app.get("/hi", (req, res) => {
+    const { authorization } = req.headers;
+    const [, token] = authorization.split(" ");
     try {
-      const details = await Training.find(); 
-      res.json(details);
+      jwt.verify(token, "my_secret_key");
+      res.json({
+        message: "yo",
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(401);
+      res.json({
+        error: err,
+      });
+    }
+  });
+  
+  app.post("/login", async (req, res) => {
+    //const USERNAME = "cody";
+   // const PASSWORD = "123456";
+  
+    const { username, password } = req.body;
+  
+    /*if (username === USERNAME && password === PASSWORD) {
+      const user = {
+        id: 1,
+        name: "cody",
+        username: "cody",
+      };
+      const token = jwt.sign(user, "my_secret_key");
+      res.json({
+        token,
+        user,
+      });
+    } else {
+      res.status(403);
+      res.json({
+        message: "invalid login information",
+      });
+    }*/
+    try{
+    const login= await Login.find();
+    let x=false;
+    for (const logindata of login) {
+      if(username===logindata.username && password===logindata.password){
+        x=true;
+        const user = {
+          id: logindata.id,
+          name: logindata.name,
+          username: logindata.username,
+        };
+        const token = jwt.sign(user, "my_secret_key");
+        res.json({
+          token,
+          user,
+        });
+      }
+    }
+    if(x===false){
+      res.status(403);
+      res.json({
+        message: "invalid login information",
+      });
+    }
+    }
+    catch(error){
+      console.error('Error fetching data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+
+  app.get('/Training/:id', async (req, res) => {
+    try {
+      const query = { username: req.params.id };
+    const documents =await Training.find(query);
+   res.json(documents);
     } catch (error) {
       console.error('Error fetching data:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -59,6 +137,7 @@ app.post('/Training', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Training({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username: detail.username,
         researchAreas: detail.researchAreas,
       });
 
@@ -84,10 +163,11 @@ app.delete('/Training/:id', async (req, res) => {
 });
 
 
-  app.get('/Talk', async (req, res) => {
+  app.get('/Talk/:id', async (req, res) => {
     try {
-      const details = await Talk.find(); 
-      res.json(details);
+      const query = { username: req.params.id };
+    const documents =await Talk.find(query);
+   res.json(documents);
     } catch (error) {
       console.error('Error fetching data:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -101,6 +181,7 @@ app.post('/Talk', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Talk({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:detail.username,
         researchAreas: detail.researchAreas,
       });
 
@@ -126,10 +207,11 @@ app.delete('/Talk/:id', async (req, res) => {
 });
 
 
-  app.get('/Reviewer', async (req, res) => {
+  app.get('/Reviewer/:id', async (req, res) => {
     try {
-      const details = await Reviewer.find(); 
-      res.json(details);
+      const query = { username: req.params.id };
+    const documents =await Reviewer.find(query);
+   res.json(documents);
     } catch (error) {
       console.error('Error fetching data:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -143,6 +225,7 @@ app.post('/Reviewer', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Reviewer({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username: detail.username,
         researchAreas: detail.researchAreas,
       });
 
@@ -168,10 +251,11 @@ app.delete('/Reviewer/:id', async (req, res) => {
 });
 
 
-  app.get('/Research', async (req, res) => {
+  app.get('/Research/:id', async (req, res) => {
     try {
-      const details = await Research.find(); 
-      res.json(details);
+      const query = { username: req.params.id };
+      const documents =await Research.find(query);
+   res.json(documents);
     } catch (error) {
       console.error('Error fetching data:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -185,6 +269,7 @@ app.post('/Research', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Research({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:detail.username,
         researchAreas: detail.researchAreas,
       });
 
@@ -209,10 +294,11 @@ app.delete('/Research/:id', async (req, res) => {
   }
 });
 
-  app.get('/Mou', async (req, res) => {
+  app.get('/Mou/:id', async (req, res) => {
     try {
-      const details = await Mou.find(); 
-      res.json(details);
+      const query = { username: req.params.id };
+    const documents =await Mou.find(query);
+   res.json(documents);
     } catch (error) {
       console.error('Error fetching data:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -226,6 +312,7 @@ app.post('/Mou', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Mou({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username: detail.username,
         researchAreas: detail.researchAreas,
       });
 
@@ -253,10 +340,11 @@ app.delete('/Mou/:id', async (req, res) => {
 
 
 
-  app.get('/Memberships', async (req, res) => {
+  app.get('/Memberships/:id', async (req, res) => {
     try {
-      const details = await Memberships.find(); 
-      res.json(details);
+      const query = { username: req.params.id };
+    const documents =await Memberships.find(query);
+   res.json(documents);
     } catch (error) {
       console.error('Error fetching data:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -270,6 +358,7 @@ app.post('/Memberships', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Memberships({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username: detail.username,
         researchAreas: detail.researchAreas,
       });
 
@@ -296,10 +385,11 @@ app.delete('/Memberships/:id', async (req, res) => {
 
 
 
-  app.get('/Laboratory', async (req, res) => {
+  app.get('/Laboratory/:id', async (req, res) => {
     try {
-      const details = await Laboratory.find(); 
-      res.json(details);
+      const query = { username: req.params.id };
+    const documents =await Laboratory.find(query);
+   res.json(documents);
     } catch (error) {
       console.error('Error fetching data:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -313,6 +403,7 @@ app.post('/Laboratory', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Laboratory({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username: detail.username,
         researchAreas: detail.researchAreas,
       });
 
@@ -337,10 +428,11 @@ app.delete('/Laboratory/:id', async (req, res) => {
   }
 });
 
-  app.get('/Aresponsibilities', async (req, res) => {
+  app.get('/Aresponsibilities/:id', async (req, res) => {
     try {
-      const details = await Aresponsibilities.find(); 
-      res.json(details);
+      const query = { username: req.params.id };
+    const documents =await Aresponsibilities.find(query);
+   res.json(documents);
     } catch (error) {
       console.error('Error fetching data:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -354,6 +446,7 @@ app.post('/Aresponsibilities', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Aresponsibilities({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username: detail.username,
         researchAreas: detail.researchAreas,
       });
 
@@ -378,10 +471,11 @@ app.delete('/Aresponsibilities/:id', async (req, res) => {
   }
 });
 
-app.get('/Awards', async (req, res) => {
+app.get('/Awards/:id', async (req, res) => {
     try {
-      const details = await Awards.find(); 
-      res.json(details);
+      const query = { username: req.params.id };
+    const documents =await Awards.find(query);
+   res.json(documents);
     } catch (error) {
       console.error('Error fetching data:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -395,6 +489,7 @@ app.post('/Awards', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Awards({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:detail.username,
         researchAreas: detail.researchAreas,
       });
 
@@ -419,16 +514,17 @@ app.delete('/Awards/:id', async (req, res) => {
   }
 });
 
-app.get('/api/users', async (req, res) => {
+app.get('/patent/:id', async (req, res) => {
   try {
-    const details = await Detail.find(); 
-    res.json(details);
+    const query = { username: req.params.id };
+    const documents =await Detail.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-app.post('/api/users', async (req, res) => {
+app.post('/patent', async (req, res) => {
   try {
     const detailData = req.body.details;
     const savedDetails = [];
@@ -436,6 +532,7 @@ app.post('/api/users', async (req, res) => {
     for (const detail of detailData) {
       const newDetail = new Detail({
         _id: detail._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username: detail.username,
         details: detail.details,
       });
 
@@ -449,7 +546,7 @@ app.post('/api/users', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-app.delete('/api/users/:id', async (req, res) => {
+app.delete('/patent/:id', async (req, res) => {
   try {
     const { id } = req.params;
     await Detail.findByIdAndDelete(id);
@@ -462,18 +559,18 @@ app.delete('/api/users/:id', async (req, res) => {
 
 
 
-app.get('/api/Dresponsibilities', async (req, res) => {
+app.get('/Dresponsibilities/:id', async (req, res) => {
   try {
-    
-    const dresponsibilitie = await Dresponsibilities.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Dresponsibilities.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.post('/api/Dresponsibilities', async (req, res) => {
+app.post('/Dresponsibilities', async (req, res) => {
   try {
     const responsibilitiesArray = req.body.dresponsibilities;
 
@@ -483,6 +580,7 @@ app.post('/api/Dresponsibilities', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Dresponsibilities({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
         designation: responsibility.designation,
         fromDate: responsibility.fromDate,
         toDate: responsibility.toDate
@@ -500,7 +598,7 @@ app.post('/api/Dresponsibilities', async (req, res) => {
 });
 
 
-app.delete('/api/Dresponsibilities/:id', async (req, res) => {
+app.delete('/Dresponsibilities/:id', async (req, res) => {
   try {
     const { id } = req.params;
     await Dresponsibilities.findByIdAndDelete(id);
@@ -512,10 +610,11 @@ app.delete('/api/Dresponsibilities/:id', async (req, res) => {
 });
 
 
-app.get('/Educational', async (req, res) => {
+app.get('/Educational/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Educational.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Educational.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -532,6 +631,7 @@ app.post('/Educational', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Educational({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
         degree: responsibility.degree,
         field: responsibility.field,
         university: responsibility.university,
@@ -561,10 +661,11 @@ app.delete('/Educational/:id', async (req, res) => {
   }
 });
 
-app.get('/Experience', async (req, res) => {
+app.get('/Experience/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Experience.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Experience.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -574,24 +675,20 @@ app.get('/Experience', async (req, res) => {
 app.post('/Experience', async (req, res) => {
   try {
     const responsibilitiesArray = req.body.Experience;
-
-    // Validate required fields for each responsibility in the array
-    // Create and save each responsibility in the array
     const savedResponsibilities = [];
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Experience({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
         designation: responsibility.designation,
         branch: responsibility.branch,
         college: responsibility.college,
         fromDate: responsibility.fromDate,
         toDate: responsibility.toDate
       });
-
       const savedResponsibility = await newResponsibilities.save();
       savedResponsibilities.push(savedResponsibility);
     }
-
     res.status(201).json(savedResponsibilities);
   } catch (error) {
     console.error('Error creating responsibilities:', error);
@@ -611,11 +708,57 @@ app.delete('/Experience/:id', async (req, res) => {
   }
 });
 
-
-app.get('/Links', async (req, res) => {
+app.get('/Responsibilities/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Links.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Responsibilities.find(query);
+   res.json(documents);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/Responsibilities', async (req, res) => {
+  try {
+    const responsibilitiesArray = req.body.Responsibilities;
+    const savedResponsibilities = [];
+    for (const responsibility of responsibilitiesArray) {
+      const newResponsibilities = new Responsibilities({
+        _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
+        designation: responsibility.designation,
+        fromDate: responsibility.fromDate,
+        toDate: responsibility.toDate
+      });
+      const savedResponsibility = await newResponsibilities.save();
+      savedResponsibilities.push(savedResponsibility);
+    }
+    res.status(201).json(savedResponsibilities);
+  } catch (error) {
+    console.error('Error creating responsibilities:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.delete('/Responsibilities/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Responsibilities.findByIdAndDelete(id);
+    res.status(200).send('Detail deleted successfully');
+  } catch (error) {
+    console.error('Error deleting detail:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.get('/Links/:id', async (req, res) => {
+  try {
+    const query = { username: req.params.id };
+    const documents =await Links.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -632,6 +775,7 @@ app.post('/Links', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Links({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
         title: responsibility.title,
         url: responsibility.url,
       });
@@ -660,10 +804,11 @@ app.delete('/Links/:id', async (req, res) => {
 });
 
 
-app.get('/National/fill', async (req, res) => {
+app.get('/National/fill/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await National.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await National.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -680,6 +825,8 @@ app.post('/National/fill', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new National({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
+        selectedOption:req.body.selectedOption,
         author_name: responsibility.author_name,
           title: responsibility.title,
           confname: responsibility.confname,
@@ -716,10 +863,11 @@ app.delete('/National/fill/:id', async (req, res) => {
   }
 });
 
-app.get('/National/user', async (req, res) => {
+app.get('/National/user/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Nationaluser.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Nationaluser.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -736,6 +884,8 @@ app.post('/National/user', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Nationaluser({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
+        selectedOption:req.body.selectedOption,
         textbox: responsibility.textbox,
       });
 
@@ -765,10 +915,11 @@ app.delete('/National/user/:id', async (req, res) => {
 
 
 
-app.get('/Nationaljournal/fill', async (req, res) => {
+app.get('/Nationaljournal/fill/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Nationaljournal.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Nationaljournal.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -785,6 +936,8 @@ app.post('/Nationaljournal/fill', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Nationaljournal({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
+        selectedOption:req.body.selectedOption,
         author_name: responsibility.author_name,
           title: responsibility.title,
           journalname: responsibility.journalname,
@@ -823,10 +976,11 @@ app.delete('/Nationaljournal/fill/:id', async (req, res) => {
   }
 });
 
-app.get('/Nationaljournal/user', async (req, res) => {
+app.get('/Nationaljournal/user/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Nationaljournaluser.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Nationaljournaluser.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -843,6 +997,8 @@ app.post('/Nationaljournal/user', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Nationaljournaluser({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        selectedOption:req.body.selectedOption,
+        username:responsibility.username,
         textbox: responsibility.textbox,
       });
 
@@ -870,10 +1026,11 @@ app.delete('/Nationaljournal/user/:id', async (req, res) => {
 });
 
 
-app.get('/Internationaljournal/fill', async (req, res) => {
+app.get('/Internationaljournal/fill/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Internationaljournal.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Internationaljournal.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -890,6 +1047,8 @@ app.post('/Internationaljournal/fill', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Internationaljournal({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
+        selectedOption:req.body.selectedOption,
         author_name: responsibility.author_name,
           title: responsibility.title,
           journalname: responsibility.journalname,
@@ -929,10 +1088,11 @@ app.delete('/Internationaljournal/fill/:id', async (req, res) => {
 });
 
 
-app.get('/Internationaljournal/user', async (req, res) => {
+app.get('/Internationaljournal/user/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Internationaljournaluser.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Internationaljournaluser.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -949,6 +1109,8 @@ app.post('/Internationaljournal/user', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Internationaljournaluser({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        selectedOption:req.body.selectedOption,
+        username:responsibility.username,
         textbox: responsibility.textbox,
       });
 
@@ -976,10 +1138,11 @@ app.delete('/Internationaljournal/user/:id', async (req, res) => {
 });
 
 
-app.get('/Internationalconference/fill', async (req, res) => {
+app.get('/Internationalconference/fill/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Internationalconference.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Internationalconference.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -996,6 +1159,8 @@ app.post('/Internationalconference/fill', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Internationalconference({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
+        selectedOption: req.body.selectedOption,
         author_name: responsibility.author_name,
           title: responsibility.title,
           journalname: responsibility.journalname,
@@ -1034,10 +1199,11 @@ app.delete('/Internationalconference/fill/:id', async (req, res) => {
   }
 });
 
-app.get('/Internationalconference/user', async (req, res) => {
+app.get('/Internationalconference/user/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Internationalconferenceuser.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Internationalconferenceuser.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -1054,6 +1220,8 @@ app.post('/Internationalconference/user', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Internationalconferenceuser({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
+        selectedOption: req.body.selectedOption,
         textbox: responsibility.textbox,
       });
 
@@ -1080,10 +1248,11 @@ app.delete('/Internationalconference/user/:id', async (req, res) => {
   }
 });
 
-app.get('/Bookchapter/fill', async (req, res) => {
+app.get('/Bookchapter/fill/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Bookchapter.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Bookchapter.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -1100,6 +1269,8 @@ app.post('/Bookchapter/fill', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Bookchapter({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        selectedOption:req.body.selectedOption,
+        username:responsibility.username,
         author_name: responsibility.author_name,
           title: responsibility.title,
           journalname: responsibility.journalname,
@@ -1136,10 +1307,11 @@ app.delete('/Bookchapter/fill/:id', async (req, res) => {
   }
 });
 
-app.get('/Bookchapter/user', async (req, res) => {
+app.get('/Bookchapter/user/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Bookchapteruser.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Bookchapteruser.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -1156,6 +1328,8 @@ app.post('/Bookchapter/user', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Bookchapteruser({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
+        selectedOption:req.body.selectedOption,
         textbox: responsibility.textbox,
       });
 
@@ -1183,10 +1357,11 @@ app.delete('/Bookchapter/user/:id', async (req, res) => {
 });
 
 
-app.get('/Academic/ug', async (req, res) => {
+app.get('/Academic/ug/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Academicug.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Academicug.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -1203,6 +1378,7 @@ app.post('/Academic/ug', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Academicug({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
         course: responsibility.course,
       });
       console.log(responsibility.course);
@@ -1229,10 +1405,11 @@ app.delete('/Academic/ug/:id', async (req, res) => {
   }
 });
 
-app.get('/Academic/pg', async (req, res) => {
+app.get('/Academic/pg/:id', async (req, res) => {
   try {
-    const dresponsibilitie = await Academicpg.find(); 
-    res.json(dresponsibilitie);
+    const query = { username: req.params.id };
+    const documents =await Academicpg.find(query);
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -1249,6 +1426,7 @@ app.post('/Academic/pg', async (req, res) => {
     for (const responsibility of responsibilitiesArray) {
       const newResponsibilities = new Academicpg({
         _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
+        username:responsibility.username,
         course: responsibility.course,
       });
 
@@ -1275,11 +1453,14 @@ app.delete('/Academic/pg/:id', async (req, res) => {
   }
 });
 
-app.get('/Details', async (req, res) => {
+app.get('/Details/:id', async (req, res) => {
   try {
-    const userInfo = await Details.findOne();
-    // You might want to add conditions here to fetch a specific user's info
-    res.json(userInfo);
+    const query = { username: req.params.id };
+    const documents =await Details.find(query);
+    if (documents.length === 0) {
+      console.log("No documents found!gjg");
+    }
+   res.json(documents);
   } catch (error) {
     console.error('Error fetching user info:', error);
     res.status(500).json({ error: 'Error fetching user info' });
@@ -1289,9 +1470,11 @@ app.get('/Details', async (req, res) => {
 
 app.post('/Details', async (req, res) => {
   try {
-    await Details.deleteMany();
-    const { email, phone } = req.body;
-    const userInfo = new Details({ email, phone });
+    const { email, phone,title,username,designation,department } = req.body;
+    const query={username:username};
+    await Details.deleteMany(query);
+    const _id=new mongoose.Types.ObjectId();
+    const userInfo = new Details({ _id,email, phone,title,username,designation,department });
     await userInfo.save();
     res.json(userInfo);
   } catch (error) {
@@ -1300,58 +1483,32 @@ app.post('/Details', async (req, res) => {
   }
 });
 
-
-
-
-
-app.get('/api/Responsibilities', async (req, res) => {
+app.post('/image', async (req, res) => {
   try {
-    
-    const dresponsibilitie = await Responsibilities.find(); 
-    res.json(dresponsibilitie);
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const { username, imageUrl } = req.body;
+    const query={username:username};
+    await image.deleteMany(query);
+    const _id=new mongoose.Types.ObjectId();
+    const newUser = new image({ _id,username, imageUrl });
+    await newUser.save();
+    res.status(201).json(newUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-app.post('/api/Responsibilities', async (req, res) => {
+// API endpoint to get all users
+app.get('/image/:id', async (req, res) => {
   try {
-    const responsibilitiesArray = req.body.Responsibilities;
-
-    // Validate required fields for each responsibility in the array
-    // Create and save each responsibility in the array
-    const saveResponsibilities = [];
-    for (const responsibility of responsibilitiesArray) {
-      const newResponsibilities = new Responsibilities({
-        _id: responsibility._id || new mongoose.Types.ObjectId(), // Use provided _id or generate a new ObjectId
-        designation: responsibility.designation,
-        fromDate: responsibility.fromDate,
-        toDate: responsibility.toDate
-      });
-
-      const savedResponsibility = await newResponsibilities.save();
-      saveResponsibilities.push(savedResponsibility);
-    }
-
-    res.status(201).json(saveResponsibilities);
-  } catch (error) {
-    console.error('Error creating responsibilities:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const username = req.params.id;
+    const user = await image.find({ username });
+    res.json(user);
+  } catch (err) {
+    res.status(500).send(err);
   }
 });
 
-
-app.delete('/api/Responsibilities/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await Responsibilities.findByIdAndDelete(id);
-    res.status(200).send('Detail deleted successfully');
-  } catch (error) {
-    console.error('Error deleting detail:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 app.listen(3000, () => {
   console.log('Server is running on port 3000');
 });
