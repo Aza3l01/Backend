@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Assuming this is your Mongoose model definition
 // departmentSchema.js
 const mongoose = require('mongoose');
@@ -15,3 +16,22 @@ const departmentSchema = new mongoose.Schema({
 const Department = mongoose.model('Department', departmentSchema);
 
 module.exports = Department;
+=======
+// Assuming this is your Mongoose model definition
+// departmentSchema.js
+const mongoose = require('mongoose');
+
+// Define the schema
+const departmentSchema = new mongoose.Schema({
+    _id: mongoose.Schema.Types.ObjectId,
+    username:String,
+    designation: String,
+    fromDate: Date,
+    toDate: Date
+},{ collection: 'Dresponsibilities' });
+
+// Create a model from the schema
+const Department = mongoose.model('Department', departmentSchema);
+
+module.exports = Department;
+>>>>>>> 08d45ae64c344504e4eb8f124945bf7901e0d92d
